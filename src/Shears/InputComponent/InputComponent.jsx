@@ -11,6 +11,8 @@ const InputComponent = ({
   disabled = false,
   error,
   min,
+inputClass,
+
 }) => {
   return (
     <div className="space-y-2">
@@ -35,6 +37,8 @@ const InputComponent = ({
         disabled={disabled}
         min={min}
         className={`
+          ${inputClass}
+          bg-slate-100
           flex h-10 w-full rounded-md
           border px-3 py-2 text-sm
           placeholder:text-slate-400
