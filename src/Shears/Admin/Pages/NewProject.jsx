@@ -1,10 +1,100 @@
-import React, { useState } from "react";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import MainModal from "../../Modal/MainModal";
 import InputComponent from "../../InputComponent/InputComponent";
 import TextareaComponent from "../../TextareaComponent/TextareaComponent";
-import MainModal from "../../Modal/MainModal";
 const NewProject = () => {
   const [openModal, setOpenModal] = useState(false);
+
+  // 🔹 Project Owners State
+  const [owners, setOwners] = useState([{ id: 1, isPrimary: true }]);
+
+  const addOwner = () => {
+    setOwners((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        isPrimary: false,
+        name: "",
+        company: "",
+        email: "",
+      },
+    ]);
+  };
+
+  const removeOwner = (id) => {
+    setOwners((prev) => prev.filter((o) => o.id !== id));
+  };
+
+  const [milestones, setMilestones] = useState([
+    {
+      id: 1,
+      milestoneName: "",
+      dueDate: "",
+      description: "",
+    },
+  ]);
+
+  // 🔹 Add Milestone
+  const addMilestone = () => {
+    setMilestones((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        milestoneName: "",
+        dueDate: "",
+        description: "",
+      },
+    ]);
+  };
+
+  const deleteMilestone = (id) => {
+    setMilestones((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Formik Form
+  const { values, handleSubmit, handleChange, setFieldValue } = useFormik({
+    initialValues: {
+      companies: [],
+      unit: "",
+      department: "",
+      proName: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      budget: "",
+      milestones: [
+        {
+          id: 1,
+          milestoneName: "",
+          dueDate: "",
+          description: "",
+        },
+      ],
+    },
+    validationSchema: Yup.object({
+      username: Yup.string(),
+      // .max(15 ,  "Must be 15 characters or less")
+      // .required("User Name required"),
+      // email: Yup.string()
+      // .email("Invalid email address") .required("Require"),
+      // password: Yup.string()
+      // .min(8 , "Password Must be at least 8 characters" ),
+      // confirmPassword : Yup.string()
+      // .confirmPassword
+    }),
+
+    onSubmit: (values) => {
+      console.log("values", { values });
+    },
+  });
+
+  useEffect(() => {
+    setFieldValue("owners", owners);
+  }, [owners]);
+
   return (
     <>
       <main className="py-6 px-4 sm:px-6">
@@ -52,7 +142,7 @@ const NewProject = () => {
           </div>
 
           {/* Form */}
-          <form className="space-y-6 max-w-3xl  ">
+          <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl  ">
             {/* Project Details Card */}
             <div className="rounded-lg bg-white border-slate-100 bg-card shadow-sm">
               <div className="px-6 space-y-4">
@@ -176,6 +266,10 @@ const NewProject = () => {
                       {/* Checkbox */}
                       <input
                         type="checkbox"
+                        name="companies"
+                        value={company}
+                        checked={values.companies.includes(company)}
+                        onChange={handleChange}
                         className="
                     h-4 w-4 rounded
                     cursor-pointer
@@ -213,13 +307,19 @@ const NewProject = () => {
                   <InputComponent
                     label="Unit"
                     id="unit"
+                    name="unit"
                     placeholder="Enter unit name"
+                    value={values.unit}
+                    onChange={handleChange}
                   />
 
                   <InputComponent
                     label="Department"
                     id="department"
+                    name="department"
                     placeholder="Enter department name"
+                    value={values.department}
+                    onChange={handleChange}
                   />
                 </div>
 
@@ -227,20 +327,29 @@ const NewProject = () => {
                 <div className="space-y-2">
                   <InputComponent
                     label="Project Name"
-                    id="name"
+                    id="proName"
+                    name="proName"
                     placeholder="Enter project name"
                     required
+                    value={values.proName}
+                    onChange={handleChange}
                   />
                 </div>
+
+                {/* Description */}
                 <div className="space-y-2">
                   <TextareaComponent
                     label="Description"
                     id="description"
+                    name="description"
                     placeholder="Detailed project description..."
                     required
                     minLength={100}
+                    value={values.description}
+                    onChange={handleChange}
                   />
                 </div>
+
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                     Project Owners
@@ -248,55 +357,113 @@ const NewProject = () => {
                   </label>
                 </div>
 
-                <div className="rounded-lg border border-slate-200 p-4 space-y-4">
-                  {/* Header */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Primary Owner
-                      <span className="text-red-500 ml-1">*</span>
-                    </span>
-                  </div>
-                  {/* Inputs */}
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <InputComponent
-                      label="Name"
-                      id="owner-name-1"
-                      placeholder="Owner name"
-                      required
-                    />
+                {owners.map((owner, index) => (
+                  <div
+                    key={owner.id}
+                    className="rounded-lg border border-slate-200 p-4 space-y-4"
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-muted-foreground">
+                        {owner.isPrimary
+                          ? "Primary Owner"
+                          : `Project Owner ${index + 1}`}
+                        <span className="text-red-500 ml-1">*</span>
+                      </span>
 
-                    <InputComponent
-                      label="Company (Optional)"
-                      id="owner-company-1"
-                      placeholder="Company name"
-                    />
+                      {!owner.isPrimary && (
+                        <button
+                          type="button"
+                          onClick={() => removeOwner(owner.id)}
+                          className="text-xs text-red-500 hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
 
-                    <InputComponent
-                      label="Email (Optional)"
-                      id="owner-email-1"
-                      type="email"
-                      placeholder="owner@company.com"
-                    />
+                    {/* Inputs */}
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <InputComponent
+                        id={"Name"}
+                        name="name"
+                        type="text"
+                        placeholder="Owner name"
+                        label="Name"
+                        value={owner?.name}
+                        onChange={(e) => {
+                          const updatedOwners = owners.map((o) =>
+                            o.id === owner.id
+                              ? {
+                                  ...o,
+                                  name: e.target.value,
+                                }
+                              : o,
+                          );
+
+                          setOwners(updatedOwners);
+                        }}
+                      />
+                      <InputComponent
+                        id={"company"}
+                        type="text"
+                        name="company"
+                        placeholder="Company name"
+                        label="Company (Optional)"
+                        value={owner?.company}
+                        onChange={(e) => {
+                          const updatedOwners = owners.map((o) =>
+                            o.id === owner.id
+                              ? {
+                                  ...o,
+                                  company: e.target.value,
+                                }
+                              : o,
+                          );
+
+                          setOwners(updatedOwners);
+                        }}
+                      />
+
+                      <InputComponent
+                        id={"email"}
+                        type="email"
+                        name="email"
+                        placeholder="owner@company.com"
+                        label="Emails (Optional)"
+                        value={owner?.email}
+                        onChange={(e) => {
+                          const updatedOwners = owners.map((o) =>
+                            o.id === owner.id
+                              ? {
+                                  ...o,
+                                  email: e.target.value,
+                                }
+                              : o,
+                          );
+
+                          setOwners(updatedOwners);
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="">
+                ))}
+
+                {/* ADD OWNER BUTTON */}
+                <div>
                   <button
                     type="button"
+                    onClick={addOwner}
                     className="
-    inline-flex items-center justify-center gap-2
-    w-full h-9 px-3
-    rounded-md
-    whitespace-nowrap
-    text-sm font-medium
-    border border-slate-100
-    bg-background
-    transition-all duration-200
-    hover:bg-[#188695] hover:border-slate-100 hover:text-white
-    focus-visible:outline-none
-    focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-    disabled:pointer-events-none disabled:opacity-50
-    cursor-pointer
-  "
+      inline-flex items-center justify-center gap-2
+      w-full h-9 px-3
+      rounded-md
+      text-sm font-medium
+      border border-slate-100
+      bg-background
+      transition-all duration-200
+      hover:bg-[#188695] hover:text-white
+    "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -306,7 +473,7 @@ const NewProject = () => {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="h-4 w-4 mr-1"
+                      className="h-4 w-4"
                     >
                       <path d="M5 12h14" />
                       <path d="M12 5v14" />
@@ -314,22 +481,36 @@ const NewProject = () => {
                     Add another project Owner (optional)
                   </button>
                 </div>
+
                 {/* Dates */}
                 <div className="grid gap-4 sm:grid-cols-3 pb-6">
                   <InputComponent
-                    label="Start Date"
                     id="startDate"
+                    label="Start Date"
+                    name="startDate"
                     type="date"
+                    value={values.startDate}
+                    onChange={handleChange}
                   />
 
-                  <InputComponent label="End Date" id="endDate" type="date" />
+                  <InputComponent
+                    id="endDate"
+                    label="End Date"
+                    name="endDate"
+                    type="date"
+                    value={values.endDate}
+                    onChange={handleChange}
+                  />
 
                   <InputComponent
+                    id={"budget"}
                     label="Budget (Optional)"
-                    id="budget"
+                    name="budget"
                     type="number"
                     placeholder="0.00"
                     min="0"
+                    value={values.budget}
+                    onChange={handleChange}
                   />
                 </div>
               </div>
@@ -341,22 +522,23 @@ const NewProject = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-black">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="h-5 w-5"
-                        >
-                          <path d="M12 13v8" />
-                          <path d="M12 3v3" />
-                          <path d="M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z" />
-                        </svg>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-black">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-black">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-5 w-5"
+                          >
+                            <path d="M12 13v8" /> <path d="M12 3v3" />
+                            <path d="M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
 
@@ -368,22 +550,22 @@ const NewProject = () => {
                     </div>
                   </div>
 
+                  {/* ✅ ADD BUTTON */}
                   <button
                     type="button"
+                    onClick={addMilestone}
                     className="
-    inline-flex items-center gap-2
-    h-9 px-3
-    text-sm font-medium
-    rounded-md
-    border border-slate-200
-    bg-slate-100
-    text-slate-700
-    hover:bg-[#188695]
-    hover:text-white
-    hover:border-slate-100
-    transition-all duration-200
-    cursor-pointer
-  "
+          inline-flex items-center gap-2
+          h-9 px-3
+          text-sm font-medium
+          rounded-md
+          border border-slate-200
+          bg-slate-100
+          text-slate-700
+          hover:bg-[#188695]
+          hover:text-white
+          transition-all
+        "
                   >
                     <span className="text-xl leading-none">+</span>
                     Add Milestone
@@ -393,25 +575,71 @@ const NewProject = () => {
 
               {/* Content */}
               <div className="p-6 pt-0 space-y-4">
-                <div className="rounded-lg border-2 border-slate-100 p-4 space-y-4">
-                  <span className="inline-block text-sm font-medium text-muted-foreground">
-                    Milestone 1
-                  </span>
+                {milestones.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border-2 border-slate-100 p-4 space-y-4"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="inline-block text-sm font-medium text-muted-foreground">
+                        Milestone {index + 1}
+                      </span>
+                      {index !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => deleteMilestone(item.id)}
+                          className="text-slate-400 hover:text-red-600 transition"
+                          title="Delete milestone"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                            <path d="M10 11v6" />
+                            <path d="M14 11v6" />
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <InputComponent
+                        label="Milestone Name"
+                        placeholder="Enter milestone name"
+                        value={item.name}
+                        onChange={(e) =>
+                          handleChange(index, "name", e.target.value)
+                        }
+                      />
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <InputComponent
-                      label="Milestone Name"
-                      placeholder="Enter milestone name"
+                      <InputComponent
+                        label="Due Date"
+                        type="date"
+                        value={item.dueDate}
+                        onChange={(e) =>
+                          handleChange(index, "dueDate", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <TextareaComponent
+                      label="Description"
+                      placeholder="Milestone description..."
+                      value={item.description}
+                      onChange={(e) =>
+                        handleChange(index, "description", e.target.value)
+                      }
                     />
-
-                    <InputComponent label="Due Date" type="date" />
                   </div>
-
-                  <TextareaComponent
-                    label="Description"
-                    placeholder="Milestone description..."
-                  />
-                </div>
+                ))}
               </div>
             </div>
 

@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-
 const TextareaComponent = ({
   label,
   id,
+  name,
   placeholder,
   required = false,
   minLength,
+  value,
+  onChange,
 }) => {
-  const [value, setValue] = useState("");
-
   return (
     <div className="space-y-2">
       {/* Label */}
-      <label
-        htmlFor={id}
-        className="text-sm font-medium leading-none"
-      >
+      <label htmlFor={id} className="text-sm font-medium leading-none">
         {label}
-        {required && <span className="text-destructive text-red-500"> *</span>}
+        {required && <span className="text-red-500"> *</span>}
         {minLength && (
           <span className="text-muted-foreground text-xs ml-2">
             (min {minLength} characters)
@@ -28,30 +24,27 @@ const TextareaComponent = ({
       {/* Textarea */}
       <textarea
         id={id}
+        name={name || id}
         rows={4}
         required={required}
         placeholder={placeholder}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={onChange}
         className="
           flex min-h-[80px] w-full
-          rounded-md border border-input border-slate-200
+          rounded-md border border-slate-200
           bg-slate-100 px-3 py-2 text-sm
-          ring-offset-background
-          placeholder:text-muted-foreground
           focus-visible:outline-none
           focus-visible:ring-2
           focus-visible:ring-[#3796a3]
           focus-visible:ring-offset-2
-          disabled:cursor-not-allowed
-          disabled:opacity-50
         "
       />
 
       {/* Character Counter */}
       {minLength && (
         <p className="text-xs text-muted-foreground">
-          {value.length}/{minLength} characters
+          {value?.length || 0}/{minLength} characters
         </p>
       )}
     </div>
