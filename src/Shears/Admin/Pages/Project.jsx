@@ -5,43 +5,46 @@ import InputComponent from "../../InputComponent/InputComponent";
 import { Search } from "lucide-react";
 
 const Projects = () => {
+  const newProjectsData = JSON.parse(localStorage.getItem("projectForm"));
+
+  console.log("newProjectsData ------------->", newProjectsData);
   const projects = [
     {
-      name: "Digital Transformation Initiative",
+      name: newProjectsData?.proName,
       type: "Collab",
-      company: "Acme Corporation +1",
-      owner: "John",
+      company: newProjectsData?.owners[0]?.company,
+      owner: newProjectsData?.owners[0]?.name,
       due: "31 Dec",
       progress: "35%",
       status: "Critical",
     },
-    {
-      name: "ERP System Upgrade",
-      type: "Solo",
-      company: "Global Solutions Ltd",
-      owner: "Sarah",
-      due: "30 Sept",
-      progress: "60%",
-      status: "At Risk",
-    },
-    {
-      name: "Customer Portal Development",
-      type: "Collab",
-      company: "TechVentures Inc +1",
-      owner: "Mike",
-      due: "15 Aug",
-      progress: "75%",
-      status: "On Track",
-    },
-    {
-      name: "Customer Portal Development",
-      type: "Collab",
-      company: "TechVentures Inc +1",
-      owner: "Mike",
-      due: "15 Aug",
-      progress: "75%",
-      status: "Completed",
-    },
+    // {
+    //   name: "ERP System Upgrade",
+    //   type: "Solo",
+    //   company: "Global Solutions Ltd",
+    //   owner: "Sarah",
+    //   due: "30 Sept",
+    //   progress: "60%",
+    //   status: "At Risk",
+    // },
+    // {
+    //   name: "Customer Portal Development",
+    //   type: "Collab",
+    //   company: "TechVentures Inc +1",
+    //   owner: "Mike",
+    //   due: "15 Aug",
+    //   progress: "75%",
+    //   status: "On Track",
+    // },
+    // {
+    //   name: "Customer Portal Development",
+    //   type: "Collab",
+    //   company: "TechVentures Inc +1",
+    //   owner: "Mike",
+    //   due: "15 Aug",
+    //   progress: "75%",
+    //   status: "Completed",
+    // },
   ];
 
   const options = ["All", "On Track", "At Risk", "Critical", "Completed"];

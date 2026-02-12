@@ -1,13 +1,14 @@
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { Link, useNavigate } from "react-router-dom";
 import MainModal from "../../Modal/MainModal";
+import React, { useEffect, useState } from "react";
 import InputComponent from "../../InputComponent/InputComponent";
 import TextareaComponent from "../../TextareaComponent/TextareaComponent";
 const NewProject = () => {
   const [openModal, setOpenModal] = useState(false);
-
+  const navigate = useNavigate();
   // 🔹 Project Owners State
   const [owners, setOwners] = useState([{ id: 1, isPrimary: true }]);
 
@@ -28,19 +29,10 @@ const NewProject = () => {
     setOwners((prev) => prev.filter((o) => o.id !== id));
   };
 
-  const [milestones, setMilestones] = useState([
-    {
-      id: 1,
-      milestoneName: "",
-      dueDate: "",
-      description: "",
-    },
-  ]);
-
   // 🔹 Add Milestone
   const addMilestone = () => {
-    setMilestones((prev) => [
-      ...prev,
+    setFieldValue("milestones", [
+      ...values.milestones,
       {
         id: Date.now(),
         milestoneName: "",
@@ -51,45 +43,53 @@ const NewProject = () => {
   };
 
   const deleteMilestone = (id) => {
-    setMilestones((prev) => prev.filter((item) => item.id !== id));
+    setFieldValue(
+      "milestones",
+      values.milestones.filter((item) => item.id !== id),
+      toast.success("form is successfully uploading"),
+    );
   };
 
   // Formik Form
-  const { values, handleSubmit, handleChange, setFieldValue } = useFormik({
-    initialValues: {
-      companies: [],
-      unit: "",
-      department: "",
-      proName: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-      budget: "",
-      milestones: [
-        {
-          id: 1,
-          milestoneName: "",
-          dueDate: "",
-          description: "",
-        },
-      ],
-    },
-    validationSchema: Yup.object({
-      username: Yup.string(),
-      // .max(15 ,  "Must be 15 characters or less")
-      // .required("User Name required"),
-      // email: Yup.string()
-      // .email("Invalid email address") .required("Require"),
-      // password: Yup.string()
-      // .min(8 , "Password Must be at least 8 characters" ),
-      // confirmPassword : Yup.string()
-      // .confirmPassword
-    }),
+  const { values, handleSubmit, handleChange, setFieldValue, resetForm } =
+    useFormik({
+      initialValues: {
+        companies: [],
+        unit: "",
+        department: "",
+        proName: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        budget: "",
+        milestones: [
+          {
+            id: Date.now(),
+            milestoneName: "",
+            dueDate: "",
+            description: "",
+          },
+        ],
+      },
+      validationSchema: Yup.object({
+        username: Yup.string(),
+        // .max(15 ,  "Must be 15 characters or less")
+        // .required("User Name required"),
+        // email: Yup.string()
+        // .email("Invalid email address") .required("Require"),
+        // password: Yup.string()
+        // .min(8 , "Password Must be at least 8 characters" ),
+        // confirmPassword : Yup.string()
+        // .confirmPassword
+      }),
 
-    onSubmit: (values) => {
-      console.log("values", { values });
-    },
-  });
+      onSubmit: (values) => {
+        toast.success("Form is successfully uploading");
+        navigate("/admin/projects");
+        localStorage.setItem("projectForm", JSON.stringify(values)); // console.log("values", { values });
+        resetForm();
+      },
+    });
 
   useEffect(() => {
     setFieldValue("owners", owners);
@@ -311,12 +311,14 @@ const NewProject = () => {
                     placeholder="Enter unit name"
                     value={values.unit}
                     onChange={handleChange}
+                    required={true}
                   />
 
                   <InputComponent
                     label="Department"
                     id="department"
                     name="department"
+                    required={true}
                     placeholder="Enter department name"
                     value={values.department}
                     onChange={handleChange}
@@ -329,6 +331,7 @@ const NewProject = () => {
                     label="Project Name"
                     id="proName"
                     name="proName"
+                    required={true}
                     placeholder="Enter project name"
                     required
                     value={values.proName}
@@ -388,6 +391,7 @@ const NewProject = () => {
                         id={"Name"}
                         name="name"
                         type="text"
+                        required={true}
                         placeholder="Owner name"
                         label="Name"
                         value={owner?.name}
@@ -410,6 +414,7 @@ const NewProject = () => {
                         name="company"
                         placeholder="Company name"
                         label="Company (Optional)"
+                        required={false}
                         value={owner?.company}
                         onChange={(e) => {
                           const updatedOwners = owners.map((o) =>
@@ -431,6 +436,7 @@ const NewProject = () => {
                         name="email"
                         placeholder="owner@company.com"
                         label="Emails (Optional)"
+                        required={false}
                         value={owner?.email}
                         onChange={(e) => {
                           const updatedOwners = owners.map((o) =>
@@ -489,6 +495,7 @@ const NewProject = () => {
                     label="Start Date"
                     name="startDate"
                     type="date"
+                    required={false}
                     value={values.startDate}
                     onChange={handleChange}
                   />
@@ -498,6 +505,7 @@ const NewProject = () => {
                     label="End Date"
                     name="endDate"
                     type="date"
+                    required={false}
                     value={values.endDate}
                     onChange={handleChange}
                   />
@@ -508,6 +516,7 @@ const NewProject = () => {
                     name="budget"
                     type="number"
                     placeholder="0.00"
+                    required={false}
                     min="0"
                     value={values.budget}
                     onChange={handleChange}
@@ -575,7 +584,7 @@ const NewProject = () => {
 
               {/* Content */}
               <div className="p-6 pt-0 space-y-4">
-                {milestones.map((item, index) => (
+                {values.milestones.map((item, index) => (
                   <div
                     key={item.id}
                     className="rounded-lg border-2 border-slate-100 p-4 space-y-4"
@@ -588,7 +597,7 @@ const NewProject = () => {
                         <button
                           type="button"
                           onClick={() => deleteMilestone(item.id)}
-                          className="text-slate-400 hover:text-red-600 transition"
+                          className="cursor-pointer text-slate-400 hover:text-red-600 transition"
                           title="Delete milestone"
                         >
                           <svg
@@ -614,9 +623,13 @@ const NewProject = () => {
                       <InputComponent
                         label="Milestone Name"
                         placeholder="Enter milestone name"
-                        value={item.name}
+                        required={true}
+                        value={item.milestoneName}
                         onChange={(e) =>
-                          handleChange(index, "name", e.target.value)
+                          setFieldValue(
+                            `milestones[${index}].milestoneName`,
+                            e.target.value,
+                          )
                         }
                       />
 
@@ -624,8 +637,12 @@ const NewProject = () => {
                         label="Due Date"
                         type="date"
                         value={item.dueDate}
+                        required={false}
                         onChange={(e) =>
-                          handleChange(index, "dueDate", e.target.value)
+                          setFieldValue(
+                            `milestones[${index}].dueDate`,
+                            e.target.value,
+                          )
                         }
                       />
                     </div>
@@ -635,7 +652,10 @@ const NewProject = () => {
                       placeholder="Milestone description..."
                       value={item.description}
                       onChange={(e) =>
-                        handleChange(index, "description", e.target.value)
+                        setFieldValue(
+                          `milestones[${index}].description`,
+                          e.target.value,
+                        )
                       }
                     />
                   </div>
